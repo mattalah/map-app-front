@@ -7,7 +7,7 @@ import './App.css';
 
 function App() {
   const { isLoading, error, data } = useQuery<Map[], Error>('repoData', () =>
-    fetch('http://localhost:4200/maps', {
+    fetch('http://localhost:3001/maps', {
       // mode: 'no-cors',
       method: 'GET',
       // referrerPolicy: 'origin-when-cross-origin',
@@ -16,7 +16,7 @@ function App() {
       },
     }).then(res =>
       res.json()
-    )
+    ).then(res => res.maps)
   )
   const limeOptions = { color: 'lime' };
 
@@ -25,7 +25,6 @@ function App() {
   if (error) return (<>An error has occurred: {error.message}</>)
 
   const polylines: LatLngExpression[] | LatLngExpression[][] = data && data?.length > 0 ? data.map(da => ([da.lat, da.long])) : []
-  console.log({ polylines })
   return (
     <MapContainer center={polylines[0]} zoom={12} scrollWheelZoom={false}>
       <TileLayer
