@@ -1,25 +1,40 @@
-import React from 'react';
-import logo from './logo.svg';
+import { LatLngExpression } from "leaflet";
+import React from "react";
+import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
+import { useQuery } from 'react-query'
+import type { Map } from '~~/types/maps'
 import './App.css';
 
 function App() {
+  const { isLoading, error, data } = useQuery<Map[], Error>('repoData', () =>
+    fetch('http://localhost:4200/maps', {
+      // mode: 'no-cors',
+      method: 'GET',
+      // referrerPolicy: 'origin-when-cross-origin',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    }).then(res =>
+      res.json()
+    )
+  )
+  const limeOptions = { color: 'lime' };
+
+  if (isLoading) return (<>Loading...</>)
+
+  if (error) return (<>An error has occurred: {error.message}</>)
+
+  const polylines: LatLngExpression[] | LatLngExpression[][] = data && data?.length > 0 ? data.map(da => ([da.lat, da.long])) : []
+  console.log({ polylines })
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <MapContainer center={polylines[0]} zoom={12} scrollWheelZoom={false}>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+      />
+      {polylines.map((polyline, i) => <Marker position={polyline} key={i} />)}
+      <Polyline pathOptions={limeOptions} positions={polylines} />
+    </MapContainer>
   );
 }
 
